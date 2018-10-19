@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta content="width=device-width,initial-scale=1,minimal-ui" name="viewport">
+		<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+		<link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
+		<style type="text/css">
+			th, td {
+				font-size: .8rem;
+				padding: 5px 5px;
+			}
+			nav {
+				margin-bottom: 15px;
+			}
+			nav .brand-logo {
+				padding-left: 15px;
+			}
+			.overflow-visible {
+				overflow: visible;
+			}
+			.overflow-scroll {
+				overflow: scroll;
+			}
+			.row.nomargin {
+				margin-bottom: 0;
+			}
+			.collection-item > .input-field > .btn-small {
+				width: 100%;
+			}
+		</style>
+		<script src="https://unpkg.com/vuex"></script>
+		<script src="https://unpkg.com/vue"></script>
+	</head>
+	<body>
+		<header>
+			<nav>
+				<div class="nav-wrapper blue-grey darken-3">
+					<a href="#" class="brand-logo teal-text text-lighten-2">TradingJS</a>
+					<ul id="nav-mobile" class="right hide-on-med-and-down">
+						<li><a class="teal-text text-lighten-2" href="#markets">Markets</a></li>
+						<li><a class="teal-text text-lighten-2" href="#buysell">Buy/Sell</a></li>
+						<li><a class="teal-text text-lighten-2" href="#orders">Orders</a></li>
+					</ul>
+				</div>
+			</nav>
+		</header>
+		<div id="app" class="container">
+			<div class="row">
+				<div class="col s3">
+					<ul class="collection with-header">
+						<li class="collection-header blue-grey darken-2 white-text">
+							<h6>BALANCES</h6>
+						</li>
+						<li class="collection-item">
+							<div>
+								<ul v-for='(value, key) in user_balance' style="list-style: none;">
+									<li class="truncate" v-cloak>{{ key }}: {{value}}</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+					<div class="valign-wrapper"></div>
+					<ul id="markets" class="collection with-header overflow-visible">
+						<li class="collection-header blue-grey darken-2 white-text">
+							<h6>MARKETS</h6>
+						</li>
+						<li class="collection-item">
+							<div class="section input-field">
+								<select class="selector" v-model="selected_pair" @change="setPair(selected_pair)">
+									<option value="" disabled>Please select pair</option>
+									<option :value="key" :selected="key == 'BTCUSD' ? 'selected' : ''" v-for='(value,key) in pairs' v-cloak>{{ key.substring(0,3) }}/{{ key.substring(3,6) }}</option>
+								</select>
+							</div>
+							<p><i v-cloak>Last price: {{ last_price }}</i></p>
+						</li>
+					</ul>
+				</div>
+				<div class="col s9">
+					<ul class="collection with-header">
+						<li class="collection-header blue-grey darken-2 white-text">
+							<h6 v-cloak>{{ pair_base }}/{{ pair_quote }}</h6>
+						</li>
+						<li class="collection-item">
+							<div class="valign-wrapper center-align" style="height:110px;"><i>[Candlestick Chart]</i></div>
+						</li>
+					</ul>
+					<div id="buysell" class="row nomargin">
+						<div class="col s6">
+							<ul class="collection with-header">
+								<li class="collection-header blue-grey darken-2 white-text">
+									<h6 v-cloak>BUY {{ pair_base }}</h6>
+								</li>
+								<li class="collection-item">
+									<div class="input-field">
+										<input id="price_buy" v-model.number="price_buy" @input="handleCost('buy',amount_buy,price_buy)">
+										<label class="active" for="price_buy" v-cloak>Price ({{ pair_quote }})</label>
+									</div>
+									<div class="input-field">
+										<input id="amount_buy" v-model.number="amount_buy" @input="handleCost('buy',amount_buy,price_buy)">
+										<label class="active" for="amount_buy" v-cloak>Amount ({{ pair_base }})</label>
+									</div>
+									<div class="input-field">
+										<input id="total_buy" v-model.number="total_buy" @input="handleTotalBuy(total_buy)">
+										<label class="active" for="total_buy" v-cloak>Total ({{ pair_quote }})</label>
+										<span class="helper-text red-text" data-error="wrong" data-success="right" v-cloak>{{ isErrorBuy ? ErrorBuyText : '&nbsp;' }}</span>
+									</div>
+									<label class="grey-text" v-cloak><i>Fee: {{ fee_buy }} {{ pair_quote }}</i></label>
+									<div class="input-field">
+										<button class="waves-effect waves-light btn-small" @click='buy(amount_buy,price_buy)'>BUY</button>
+									</div>
+								</li>
+							</ul>
+						</div>
+						<div class="col s6">
+							<ul class="collection with-header">
+								<li class="collection-header blue-grey darken-2 white-text">
+									<h6 v-cloak>SELL {{ pair_base }}</h6>
+								</li>
+								<li class="collection-item">
+									<div class="input-field">
+										<input id="price_sell" v-model.number="price_sell" @input="handleCost('sell',amount_sell,price_sell)">
+										<label class="active" for="price_sell" v-cloak>Price ({{ pair_quote }})</label>
+									</div>
+									<div class="input-field">
+										<input id="amount_sell" v-model.number="amount_sell" @input="handleCost('sell',amount_sell,price_sell)">
+										<label class="active" for="amount_sell" v-cloak>Amount ({{ pair_base }})</label>
+									</div>
+									<div class="input-field">
+										<input id="total_sell" v-model.number="total_sell" @input="handleTotalSell(total_sell)" v-cloak>
+										<label class="active" for="total_sell" v-cloak>Total ({{ pair_quote }})</label>
+										<span class="helper-text red-text" data-error="wrong" data-success="right" v-cloak>{{ isErrorSell ? ErrorSellText : '&nbsp;' }}</span>
+									</div>
+									<label class="grey-text" v-cloak><i>Fee: {{ fee_sell }} {{ pair_base }}</i></label>
+									<div class="input-field">
+										<button class="waves-effect waves-light btn-small light-blue darken-2" @click='sell(amount_sell,price_sell)'>SELL</button>
+									</div>
+								</li>
+							</ul>
+						</div>
+					</div>
+					<div id="orders" class="row">
+						<div class="col s6">
+							<ul class="collection with-header overflow-scroll">
+								<li class="collection-header blue-grey darken-2 white-text">
+									<h6>BIDS</h6>
+								</li>
+								<li class="collection-item">
+									<table class="highlight striped responsive-table">
+										<thead class="teal-text text-lighten-2">
+											<tr>
+												<th>Currency</th>
+												<th>Amount</th>
+												<th>Price</th>
+												<th>Cancel</th>
+											</tr>
+										</thead>
+										<tbody>
+											<tr v-for='(order,key) in orders' v-if='order.action == "bid"'>
+												<td v-cloak>{{ order.pair.substring(0,3) }}</td>
+												<td v-cloak>{{ order.amount }}</td>
+												<td v-cloak>{{ order.price }}</td>
+												<td><button @click='cancelOrder(key)' class="waves-effect waves-teal btn-flat"><i class="small material-icons">cancel</i></button></td>
+											</tr>
+										</tbody>
+									</table>
+								</li>
+							</ul>
+						</div>
+						<div class="col s6">
+							<ul class="collection with-header overflow-scroll">
+								<li class="collection-header blue-grey darken-2 white-text">
+									<h6>ASKS</h6>
+								</li>
+								<li class="collection-item">
+									<table class="highlight striped responsive-table">
+										<thead class="light-blue-text text-darken-2">
+											<tr>
+												<th>Currency</th>
+												<th>Amount</th>
+												<th>Price</th>
+												<th>Cancel</th>
+											</tr>
+										</thead>
+										<tbody>
+											<tr v-for='(order,key) in orders' v-if='order.action == "ask"'>
+												<td v-cloak>{{ order.pair.substring(0,3) }}</td>
+												<td v-cloak>{{ order.amount }}</td>
+												<td v-cloak>{{ order.price }}</td>
+												<td><button @click='cancelOrder(key)' class="waves-effect waves-teal btn-flat"><i class="small material-icons">cancel</i></button></td>
+											</tr>
+										</tbody>
+									</table>
+								</li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<footer class="page-footer white">
+			<div class="footer-copyright blue-grey darken-3">
+				<div class="container">
+					© 2018 TradingJS by kpeo
+				</div>
+			</div>
+		</footer>
+		<script src="app.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+		<script>
+			document.addEventListener('DOMContentLoaded', function() {
+				var elems = document.querySelectorAll('select');
+				var instances = M.FormSelect.init(elems);
+			});
+		</script>
+	</body>
+</html>
