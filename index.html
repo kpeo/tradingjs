@@ -16,17 +16,26 @@
 			nav .brand-logo {
 				padding-left: 15px;
 			}
-			.overflow-visible {
-				overflow: visible;
+			.card.with-header {
+				border-radius: 2px;
 			}
-			.overflow-scroll {
-				overflow: scroll;
+			.card.with-header .card-header {
+				padding: 10px 20px;
+				border-radius: 2px 2px 0 0;
 			}
-			.row.nomargin {
-				margin-bottom: 0;
+			.card.with-header .card-content {
+				padding: 10px 20px;
 			}
-			.collection-item > .input-field > .btn-small {
+			.card.with-header.borders .card-content {
+				border-left: 1px solid #e0e0e0;
+				border-bottom: 1px solid #e0e0e0;
+				border-right: 1px solid #e0e0e0;
+			}
+			.card.with-header .card-content > .input-field > .btn-small {
 				width: 100%;
+			}
+			.overflow-auto {
+				overflow: auto;
 			}
 		</style>
 		<script src="https://unpkg.com/vuex"></script>
@@ -48,50 +57,51 @@
 		<div id="app" class="container">
 			<div class="row">
 				<div class="col s3">
-					<ul class="collection with-header">
-						<li class="collection-header blue-grey darken-2 white-text">
-							<h6>BALANCES</h6>
-						</li>
-						<li class="collection-item">
-							<div>
-								<ul v-for='(value, key) in user_balance' style="list-style: none;">
-									<li class="truncate" v-cloak>{{ key }}: {{value}}</li>
-								</ul>
-							</div>
-						</li>
-					</ul>
+					<div class="card with-header borders z-depth-0">
+						<div class="card-header blue-grey darken-2 white-text">
+							<span class="card-title"><h6>BALANCES</h6></span>
+						</div>
+						<div class="card-content">
+							<ul v-for='(value, key) in user_balance'>
+								<li class="truncate" v-cloak>{{ key }}: {{value}}</li>
+							</ul>
+						</div>
+					</div>
 					<div class="valign-wrapper"></div>
-					<ul id="markets" class="collection with-header overflow-visible">
-						<li class="collection-header blue-grey darken-2 white-text">
-							<h6>MARKETS</h6>
-						</li>
-						<li class="collection-item">
-							<div class="section input-field">
+					<div class="card with-header borders z-depth-0">
+						<div class="card-header blue-grey darken-2 white-text">
+							<span class="card-title"><h6>MARKETS</h6></span>
+						</div>
+						<div class="card-content">
+							<div class="input-field">
 								<select class="selector" v-model="selected_pair" @change="setPair(selected_pair)">
 									<option value="" disabled>Please select pair</option>
 									<option :value="key" :selected="key == 'BTCUSD' ? 'selected' : ''" v-for='(value,key) in pairs' v-cloak>{{ key.substring(0,3) }}/{{ key.substring(3,6) }}</option>
 								</select>
+								<label>Market Pair</label>
 							</div>
-							<p><i v-cloak>Last price: {{ last_price }}</i></p>
-						</li>
-					</ul>
+							<label class="grey-text"><i v-cloak>Last price: {{ last_price }}</i></label>
+						</div>
+					</div>
 				</div>
 				<div class="col s9">
-					<ul class="collection with-header">
-						<li class="collection-header blue-grey darken-2 white-text">
-							<h6 v-cloak>{{ pair_base }}/{{ pair_quote }}</h6>
-						</li>
-						<li class="collection-item">
-							<div class="valign-wrapper center-align" style="height:110px;"><i>[Candlestick Chart]</i></div>
-						</li>
-					</ul>
-					<div id="buysell" class="row nomargin">
+					<div class="card with-header borders z-depth-0">
+						<div class="card-header blue-grey darken-2 white-text">
+							<span class="card-title"><h6 v-cloak>{{ pair_base }}/{{ pair_quote }}</h6></span>
+						</div>
+						<div class="card-content">
+							<div class="valign-wrapper center-align" style="height:110px;">
+								<i>[Candlestick Chart]</i>
+							</div>
+						</div>
+					</div>
+					<div id="buysell" class="row">
 						<div class="col s6">
-							<ul class="collection with-header">
-								<li class="collection-header blue-grey darken-2 white-text">
-									<h6 v-cloak>BUY {{ pair_base }}</h6>
-								</li>
-								<li class="collection-item">
+							<div class="card with-header borders z-depth-0">
+								<div class="card-header blue-grey darken-2 white-text">
+									<span class="card-title"><h6 v-cloak>BUY {{ pair_base }}</h6></span>
+								</div>
+								<div class="card-content">
 									<div class="input-field">
 										<input id="price_buy" v-model.number="price_buy" @input="handleCost('buy',amount_buy,price_buy)">
 										<label class="active" for="price_buy" v-cloak>Price ({{ pair_quote }})</label>
@@ -109,15 +119,15 @@
 									<div class="input-field">
 										<button class="waves-effect waves-light btn-small" @click='buy(amount_buy,price_buy)'>BUY</button>
 									</div>
-								</li>
-							</ul>
+								</div>
+							</div>
 						</div>
 						<div class="col s6">
-							<ul class="collection with-header">
-								<li class="collection-header blue-grey darken-2 white-text">
-									<h6 v-cloak>SELL {{ pair_base }}</h6>
-								</li>
-								<li class="collection-item">
+							<div class="card with-header borders z-depth-0">
+								<div class="card-header blue-grey darken-2 white-text">
+									<span class="card-title"><h6 v-cloak>SELL {{ pair_base }}</h6></span>
+								</div>
+								<div class="card-content">
 									<div class="input-field">
 										<input id="price_sell" v-model.number="price_sell" @input="handleCost('sell',amount_sell,price_sell)">
 										<label class="active" for="price_sell" v-cloak>Price ({{ pair_quote }})</label>
@@ -135,17 +145,17 @@
 									<div class="input-field">
 										<button class="waves-effect waves-light btn-small light-blue darken-2" @click='sell(amount_sell,price_sell)'>SELL</button>
 									</div>
-								</li>
-							</ul>
+								</div>
+							</div>
 						</div>
 					</div>
 					<div id="orders" class="row">
 						<div class="col s6">
-							<ul class="collection with-header overflow-scroll">
-								<li class="collection-header blue-grey darken-2 white-text">
-									<h6>BIDS</h6>
-								</li>
-								<li class="collection-item">
+							<div class="card with-header borders z-depth-0">
+								<div class="card-header blue-grey darken-2 white-text">
+									<span class="card-title"><h6>BIDS</h6></span>
+								</div>
+								<div class="card-content overflow-auto">
 									<table class="highlight striped responsive-table">
 										<thead class="teal-text text-lighten-2">
 											<tr>
@@ -164,15 +174,15 @@
 											</tr>
 										</tbody>
 									</table>
-								</li>
-							</ul>
+								</div>
+							</div>
 						</div>
 						<div class="col s6">
-							<ul class="collection with-header overflow-scroll">
-								<li class="collection-header blue-grey darken-2 white-text">
-									<h6>ASKS</h6>
-								</li>
-								<li class="collection-item">
+							<div class="card with-header borders z-depth-0">
+								<div class="card-header blue-grey darken-2 white-text">
+									<span class="card-title"><h6>ASKS</h6></span>
+								</div>
+								<div class="card-content overflow-auto">
 									<table class="highlight striped responsive-table">
 										<thead class="light-blue-text text-darken-2">
 											<tr>
@@ -191,8 +201,8 @@
 											</tr>
 										</tbody>
 									</table>
-								</li>
-							</ul>
+								</div>
+							</div>
 						</div>
 					</div>
 				</div>
